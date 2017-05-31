@@ -4,7 +4,8 @@
   "sources": [
     "src"
   ],
-  "reason" : { "react-jsx" : true},
+  // "reason" : { "react-jsx" : true},
+  // Uncomment above to have Reason  JSX support
   "bs-dependencies" : [
       // add your bs-dependencies here 
   ]
