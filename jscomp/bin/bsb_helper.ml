@@ -3987,7 +3987,6 @@ type module_info =
   {
     mli : mli_kind ; 
     ml : ml_kind ; 
-    mll : string option 
   }
 
 type file_group_rouces = module_info String_map.t 
@@ -4055,7 +4054,7 @@ type module_info =
   {
     mli : mli_kind ; 
     ml : ml_kind ; 
-    mll : string option ;
+    (*mll : string option ;*)
   }
 
 
@@ -4070,7 +4069,7 @@ let module_info_magic_number = "BSBUILD20161019"
 let dir_of_module_info (x : module_info)
   = 
   match x with 
-  | { mli; ml; mll} -> 
+  | { mli; ml;  } -> 
     begin match mli with 
     | Mli s | Rei s -> 
       Filename.dirname s 
@@ -4078,11 +4077,11 @@ let dir_of_module_info (x : module_info)
       begin match ml with 
       | Ml s | Re s -> 
         Filename.dirname s 
-      | Ml_empty -> 
-        begin match mll with 
+      | Ml_empty -> Ext_string.empty
+        (*begin match mll with 
         | None -> ""
         | Some s -> Filename.dirname s 
-        end 
+        end *)
       end
     end
 
@@ -4104,7 +4103,7 @@ let read_build_cache bsbuild : t =
 let bsbuild_cache = ".bsbuild"
 
 
-let empty_module_info = {mli = Mli_empty ; mll = None ; ml = Ml_empty}
+let empty_module_info = {mli = Mli_empty ;  ml = Ml_empty}
 
 let adjust_module_info x suffix name =
   match suffix with 
@@ -4112,7 +4111,6 @@ let adjust_module_info x suffix name =
   | ".re" -> {x with ml = Re name}
   | ".mli" ->  {x with mli = Mli name}
   | ".rei" -> { x with mli = Rei name}
-  | ".mll" -> {x with mll = Some name}
   | _ -> failwith ("don't know what to do with " ^ name)
 
 let map_update ?dir (map : file_group_rouces)  name : file_group_rouces  = 
@@ -4236,7 +4234,7 @@ let handle_bin_depfile
       Array.fold_left
         (fun ((acc, len) as v) k  -> 
            match String_map.find_opt k data.(0) with
-           | Some ({ml = Ml s | Re s  } | {mll = Some s }) 
+           | Some {ml = Ml s | Re s  }  
              -> 
              let new_file = op_concat @@ Filename.chop_extension s ^ suffix_inteface  
              in (new_file :: acc , len + String.length new_file + length_space)
@@ -4248,7 +4246,7 @@ let handle_bin_depfile
              if index = 0 then v 
              else 
                begin match String_map.find_opt k data.(index) with 
-                 | Some ({ml = Ml s | Re s  } | {mll = Some s }) 
+                 | Some {ml = Ml s | Re s  }
                    -> 
                    let new_file = op_concat @@ Filename.chop_extension s ^ suffix_inteface  
                    in (new_file :: acc , len + String.length new_file + length_space)
@@ -4276,7 +4274,6 @@ let handle_bin_depfile
             (fun ((acc, len) as v) k ->
                match String_map.find_opt k data.(0) with 
                | Some ({ ml = Ml f | Re f  }
-                      | { mll = Some f }
                       | { mli = Mli f | Rei f }) -> 
                  let new_file = (op_concat @@ Filename.chop_extension f ^ Literals.suffix_cmi) in
                  (new_file :: acc , len + String.length new_file + length_space)
@@ -4286,7 +4283,6 @@ let handle_bin_depfile
                  else 
                    begin  match String_map.find_opt k data.(index) with 
                      | Some ({ ml = Ml f | Re f  }
-                            | { mll = Some f }
                             | { mli = Mli f | Rei f }) -> 
                        let new_file = (op_concat @@ Filename.chop_extension f ^ Literals.suffix_cmi) in
                        (new_file :: acc , len + String.length new_file + length_space)
